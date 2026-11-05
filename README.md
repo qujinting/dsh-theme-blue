@@ -13,9 +13,9 @@ sidebar control back to the classic UI for the native light interface.
 
 Nothing in the DSH installation is modified; uninstalling restores the stock UI.
 
-![The welcome screen: DeepSeek Blue interface with the looping wallpaper behind the composer](docs/preview-welcome.png)
+![The welcome screen: DeepSeek Blue interface with the looping wallpaper behind the composer](docs/screenshot-welcome.png)
 
-![The 4K intro film that plays before the interface is revealed](docs/preview-intro.png)
+![The 4K intro film that plays before the interface is revealed](docs/screenshot-intro.png)
 
 
 ## What it changes

@@ -11,9 +11,9 @@
 
 不改 DSH 本体，卸载即还原。
 
-![欢迎页：DeepSeek Blue 界面 + 输入区之后的循环人物壁纸](docs/preview-welcome.png)
+![欢迎页：DeepSeek Blue 界面 + 输入区之后的循环人物壁纸](docs/screenshot-welcome.png)
 
-![启动时先播的 4K 进场影片](docs/preview-intro.png)
+![启动时先播的 4K 进场影片](docs/screenshot-intro.png)
 
 
 ## 它做了什么
