@@ -258,8 +258,22 @@ classic UI restores the native light interface.
 
 ## License
 
-MIT for the plug-in code (see [LICENSE](LICENSE)). No third-party fonts, images or
-models are bundled; the veil artwork is inline SVG coloured from the brand / beam accents.
+MIT for the plug-in code (see [LICENSE](LICENSE)).
+
+### Films in `videos/`
+
+The four films in `videos/` are collected from the internet. They are **not original
+work** and are **not** covered by this repository's MIT licence — copyright stays with
+their respective owners. They ship with the plug-in for demonstration and sharing only.
+If you hold the rights to one of them and want it taken down, open an issue and it will
+be removed right away.
+
+For anything beyond demonstration, replace them with footage you are licensed to use:
+the paths are configurable (`introVideo` / `backgroundVideo`), and setting either to
+`''` disables it.
+
+The veil artwork is inline SVG coloured from the brand / beam accents; no third-party
+fonts or models are bundled.
 
 ## Community
 
