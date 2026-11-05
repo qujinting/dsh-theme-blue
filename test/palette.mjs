@@ -92,5 +92,17 @@ const cssText = readFileSync(join(ROOT, 'theme/theme.css'), 'utf8')
 check('sidebar decoration gradient lives in the stylesheet', /div:nth-of-type\(1\)[^{]*\{[^}]*background-image:[^}]*linear-gradient/u.test(cssText))
 check('wallpaper styling is single-scheme (no light branch)', /\.orbital-theme-bg/u.test(cssText) && !cssText.includes('data-ds-dark-theme'))
 
+// --- composer light band ----------------------------------------------------
+//
+// The band is the one sanctioned multi-hue exception, so its colours have to be
+// real palette values (the stylesheet only ever uses var()) and the strip width
+// has to be a length.
+const bandTokens = ['--orbital-band-violet', '--orbital-band-azure', '--orbital-band-cyan', '--orbital-band-pale']
+for (const token of bandTokens) {
+	check(`composer band colour is a palette hex: ${token}`, /^#[0-9a-f]{6}$/iu.test(metrics[token] ?? ''), metrics[token] ?? 'missing')
+}
+check('composer band width is a length', /^\d+(?:\.\d+)?px$/u.test(metrics['--orbital-band-width'] ?? ''), metrics['--orbital-band-width'] ?? 'missing')
+check('composer band is styled from those tokens', /\[data-composer-card\]::before\s*\{[^}]*var\(--orbital-band-azure\)/u.test(cssText))
+
 console.log(failures.length === 0 ? '\nALL PASS' : `\n${failures.length} FAILURE(S): ${failures.join(', ')}`)
 process.exit(failures.length === 0 ? 0 : 1)

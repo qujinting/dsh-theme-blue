@@ -69,5 +69,6 @@
         # deep glow stays on. Both can be toggled.
         scanlines: false
         grid: true
-        # Accent intensity: off | low | medium | high.
+        # Accent intensity: off | low | medium | high. Also scales the composer
+        # light band and its coloured spill; off returns the plain dark card.
         glow: medium

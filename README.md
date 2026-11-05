@@ -28,6 +28,7 @@ Nothing in the DSH installation is modified; uninstalling restores the stock UI.
 | Geometry | Radius scale, transition durations, shadow levels | Soft glass surfaces, low elevation steps, cool-tinted borders |
 | Ambience | Deep blue radial glow; the scan-line texture is off by default | A "diving" sense of depth without a field of horizontal lines over the conversation |
 | Structure | Frame columns, composer, conversation area, boot screen, scrollbars | Dark-grey composer, brand-coloured sidebar selection bar, hairline dividers |
+| Composer | A slow-drifting colour band around the card edge, whose light spills onto the wallpaper (`::before` draws the ring, `box-shadow` casts the wash; no box-size change, no extra DOM) | The "neon strip + light wash" look from the reference; intensity follows the `glow` preset, and `glow: off` fades band and spill out together. On focus the band and wash fade in over 380 ms (both shadow lists are layer-aligned so the pair is interpolable), and the placeholder/hint text is lifted inside the card |
 | Motion | 4K intro film (falls back to the built-in HUD self-test animation), a 900 ms cross-fade started before the film's still tail, then the interface reveal | No more flash of an unthemed shell, no hard cut, and no "film ends, then nothing happens" |
 | Window chrome | Drives the title-bar colours the DSH preload probes, while the veil plays (Windows desktop only) | The minimize / maximize / close plate no longer sits as a white block on the film; hidden by default |
 | Wallpaper | Looping character film, blurred and sunk below the conversation content | **Shown on new sessions and on conversations with turns**, darker in dark mode, fainter in light mode |
@@ -77,7 +78,7 @@ own profile patch):
     titleBar: hide         # Windows native title bar during the veil: hide | blend | off
     scanlines: false       # fine scan-line texture (off by default; it reads as a field of lines)
     grid: true             # centre-column deep glow
-    glow: medium           # off | low | medium | high
+    glow: medium           # off | low | medium | high (also scales the composer band)
 ```
 
 Film paths are relative to the package root; `videos/` ships two intro exports (120-frame and

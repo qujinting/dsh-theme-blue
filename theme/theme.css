@@ -163,64 +163,98 @@ html [data-composer-card] {
 	   于是「暗淡 → 聚焦变亮」地闪一下。纯色卡片不会有这个跳变。 */
 	background: var(--dsw-specific-input-major);
 	position: relative;
+
+	/* 输入区里的说明文字（占位符、命令提示）取的是 label-caption，这一档在深潜里
+	   压得偏暗，落在深灰卡片上几乎读不出来；只在卡片作用域内把它提到
+	   label-secondary 与 label-primary 之间，全局 caption 不动。 */
+	--dsw-alias-label-caption: color-mix(in srgb, var(--dsw-alias-label-secondary) 76%, var(--dsw-alias-label-primary));
+
 	box-shadow:
 		var(--dsw-shadow-lv2),
-		-20px -4px 54px -26px color-mix(in srgb, var(--orbital-band-cyan) calc(80% * var(--orbital-glow)), transparent),
-		20px -4px 54px -26px color-mix(in srgb, var(--orbital-band-violet) calc(80% * var(--orbital-glow)), transparent),
-		0 16px 60px -22px color-mix(in srgb, var(--orbital-band-violet) calc(85% * var(--orbital-glow)), transparent),
-		0 34px 110px -30px color-mix(in srgb, var(--orbital-band-azure) calc(95% * var(--orbital-glow)), transparent),
-		inset 0 1px 0 color-mix(in srgb, var(--orbital-band-pale) calc(14% * var(--orbital-glow)), transparent),
-		inset 0 0 54px -28px color-mix(in srgb, var(--orbital-band-cyan) calc(50% * var(--orbital-glow)), transparent);
+
+		/* 占位层：聚焦时这一格换成品牌色描边环。两态阴影列表必须层数、内外一致
+		   （含这一层和末尾两层的 inset），否则 Chrome 判定不可插值，过渡会直接跳变。 */
+		0 0 0 0 transparent,
+		0 0 96px -12px color-mix(in srgb, var(--orbital-band-azure) calc(45% * var(--orbital-glow)), transparent),
+		-30px 0 82px -20px color-mix(in srgb, var(--orbital-band-cyan) calc(45% * var(--orbital-glow)), transparent),
+		30px 0 82px -20px color-mix(in srgb, var(--orbital-band-violet) calc(45% * var(--orbital-glow)), transparent),
+		0 24px 92px -18px color-mix(in srgb, var(--orbital-band-violet) calc(72% * var(--orbital-glow)), transparent),
+		0 56px 156px -30px color-mix(in srgb, var(--orbital-band-azure) calc(85% * var(--orbital-glow)), transparent),
+		inset 0 1px 0 color-mix(in srgb, var(--orbital-band-pale) calc(18% * var(--orbital-glow)), transparent),
+		inset 0 0 60px -24px color-mix(in srgb, var(--orbital-band-cyan) calc(55% * var(--orbital-glow)), transparent);
+
+	/* 聚焦时那层光要比入场慢一点收放，否则像开关一样硬切。
+	   缓动走本主题自己的 --orbital-ease*：DSH 的 --ds-ease-* 是运行时令牌，
+	   宿主没注入时整条 transition 会失效（等于没有过渡）。 */
 	transition:
-		border-color var(--ds-transition-duration) var(--ds-ease-in-out),
-		box-shadow var(--ds-transition-duration) var(--ds-ease-in-out);
+		border-color 220ms var(--orbital-ease),
+		box-shadow 380ms var(--orbital-ease-out);
 }
 
-html [data-composer-card]::before {
-	content: '';
-	position: absolute;
-	inset: calc(var(--orbital-band-width) * -1);
-	padding: var(--orbital-band-width);
-	border-radius: calc(var(--dsw-radius-panel) + var(--orbital-band-width));
-	background: conic-gradient(
-		from var(--orbital-band-angle, 0deg),
-		var(--orbital-band-azure),
-		var(--orbital-band-cyan) 46deg,
-		var(--orbital-band-pale) 78deg,
-		var(--orbital-band-cyan) 112deg,
-		var(--orbital-band-azure) 154deg,
-		var(--orbital-band-violet) 198deg,
-		var(--orbital-band-azure) 248deg,
-		var(--orbital-band-cyan) 304deg,
-		var(--orbital-band-azure)
-	);
-	opacity: var(--orbital-glow);
+/* 环靠「mask 掏空中间」画出来；万一运行时不支持 mask 合成，整条规则就别生效，
+   否则那个渐变矩形会糊在输入区上面。 */
+@supports ((mask-composite: exclude) or (-webkit-mask-composite: xor)) {
+	html [data-composer-card]::before {
+		content: '';
+		position: absolute;
+
+		/* 绝对定位的参照系是卡片的 padding box，卡片还有 1px 自己的描边，
+		   所以往外退「灯带宽 + 1px」才让灯带整条落在卡片边框外面。 */
+		inset: calc((var(--orbital-band-width) + 1px) * -1);
+		padding: var(--orbital-band-width);
+		border-radius: calc(var(--dsw-radius-panel) + 1px + var(--orbital-band-width));
+		background: conic-gradient(
+			from var(--orbital-band-angle, 0deg) at 50% 280%,
+			var(--orbital-band-pale),
+			var(--orbital-band-cyan) 40deg,
+			var(--orbital-band-azure) 92deg,
+			var(--orbital-band-violet) 146deg,
+			var(--orbital-band-violet) 214deg,
+			var(--orbital-band-azure) 268deg,
+			var(--orbital-band-cyan) 320deg,
+			var(--orbital-band-pale)
+		);
+		opacity: calc(var(--orbital-glow) * 0.85);
+		filter:
+			drop-shadow(0 0 8px color-mix(in srgb, var(--orbital-band-cyan) 90%, transparent))
+			drop-shadow(0 0 26px color-mix(in srgb, var(--orbital-band-azure) 80%, transparent));
+		-webkit-mask:
+			linear-gradient(#000 0 0) content-box,
+			linear-gradient(#000 0 0);
+		-webkit-mask-composite: xor;
+		mask:
+			linear-gradient(#000 0 0) content-box,
+			linear-gradient(#000 0 0);
+		mask-composite: exclude;
+		pointer-events: none;
+		animation: orbital-band-drift 24s linear infinite;
+
+		/* 灯带自身也要跟着聚焦一起变亮，而且这段过渡和卡片的阴影同一条曲线。 */
+		transition:
+			opacity 380ms var(--orbital-ease-out),
+			filter 380ms var(--orbital-ease-out);
+	}
+}
+
+html [data-composer-card]:focus-within::before {
+	opacity: min(1, calc(var(--orbital-glow) * 1.25));
 	filter:
-		drop-shadow(0 0 5px color-mix(in srgb, var(--orbital-band-cyan) 65%, transparent))
-		drop-shadow(0 0 16px color-mix(in srgb, var(--orbital-band-azure) 55%, transparent));
-	-webkit-mask:
-		linear-gradient(#000 0 0) content-box,
-		linear-gradient(#000 0 0);
-	-webkit-mask-composite: xor;
-	mask:
-		linear-gradient(#000 0 0) content-box,
-		linear-gradient(#000 0 0);
-	mask-composite: exclude;
-	pointer-events: none;
-	animation: orbital-band-drift 24s linear infinite;
+		drop-shadow(0 0 12px color-mix(in srgb, var(--orbital-band-cyan) 100%, transparent))
+		drop-shadow(0 0 40px color-mix(in srgb, var(--orbital-band-azure) 95%, transparent));
 }
 
 html [data-composer-card]:focus-within {
 	border-color: color-mix(in srgb, var(--orbital-accent) 90%, var(--dsw-alias-border-l3));
 	box-shadow:
 		var(--dsw-shadow-lv2),
-		-23px -4px 62px -24px color-mix(in srgb, var(--orbital-band-cyan) calc(95% * var(--orbital-glow)), transparent),
-		23px -4px 62px -24px color-mix(in srgb, var(--orbital-band-violet) calc(95% * var(--orbital-glow)), transparent),
-		0 18px 72px -20px color-mix(in srgb, var(--orbital-band-violet) calc(100% * var(--orbital-glow)), transparent),
-		0 38px 132px -28px color-mix(in srgb, var(--orbital-band-azure) calc(105% * var(--orbital-glow)), transparent),
 		0 0 0 2px color-mix(in srgb, var(--orbital-accent) calc(55% * var(--orbital-glow)), transparent),
-		inset 0 1px 0 color-mix(in srgb, var(--orbital-band-pale) calc(22% * var(--orbital-glow)), transparent),
-		inset 0 0 62px -26px color-mix(in srgb, var(--orbital-band-cyan) calc(62% * var(--orbital-glow)), transparent);
+		0 0 112px -10px color-mix(in srgb, var(--orbital-band-azure) calc(62% * var(--orbital-glow)), transparent),
+		-34px 0 96px -18px color-mix(in srgb, var(--orbital-band-cyan) calc(62% * var(--orbital-glow)), transparent),
+		34px 0 96px -18px color-mix(in srgb, var(--orbital-band-violet) calc(62% * var(--orbital-glow)), transparent),
+		0 26px 104px -16px color-mix(in srgb, var(--orbital-band-violet) calc(90% * var(--orbital-glow)), transparent),
+		0 62px 176px -30px color-mix(in srgb, var(--orbital-band-azure) calc(100% * var(--orbital-glow)), transparent),
+		inset 0 1px 0 color-mix(in srgb, var(--orbital-band-pale) calc(26% * var(--orbital-glow)), transparent),
+		inset 0 0 68px -22px color-mix(in srgb, var(--orbital-band-cyan) calc(70% * var(--orbital-glow)), transparent);
 }
 
 html [data-composer-chip],
@@ -841,6 +875,10 @@ html[data-dsh-theme-wallpaper='always'] #root div:has(> [data-shell-overlay]) > 
 
 	html [data-composer-card]::before {
 		animation: none;
+	}
+
+	html [data-composer-card] {
+		transition: none;
 	}
 }
 

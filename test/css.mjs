@@ -131,5 +131,33 @@ check('wallpaper stays visible in a conversation', /html\[data-dsh-theme-wallpap
 check('user bubble carries the brand hairline', /\[data-conversation-scroll\][^{]*\[class\*='_bubble'\][^{]*\{[^}]*box-shadow:\s*inset 0 0 0 1px/u.test(css))
 check('video mode hides the CSS HUD stage', /\[data-media='video'\][^{]*\{[^}]*display:\s*none/u.test(css))
 
+// --- composer light band ----------------------------------------------------
+//
+// The composer carries a coloured light strip drawn with a masked conic gradient
+// on ::before, plus a coloured spill painted by the card's own box-shadow. The
+// colours are palette metrics (never literals here) and the whole effect scales
+// with --orbital-glow, so `glow: off` restores the plain card.
+check('composer card draws a ring on ::before', /\[data-composer-card\]::before\s*\{[^}]*content:\s*''[^}]*position:\s*absolute/u.test(css))
+check('composer ring is a conic gradient', /\[data-composer-card\]::before\s*\{[^}]*conic-gradient/u.test(css))
+check('composer ring is hollowed out with a mask', /\[data-composer-card\]::before\s*\{[^}]*mask-composite:\s*exclude/u.test(css))
+check('composer ring colours come from the palette', /var\(--orbital-band-cyan\)/u.test(css) && /var\(--orbital-band-violet\)/u.test(css) && !/--orbital-band-[a-z-]+:\s*#/u.test(css))
+check('composer ring fades with the glow preset', /\[data-composer-card\]::before\s*\{[^}]*opacity:\s*(?:calc\()?var\(--orbital-glow\)/u.test(css))
+check('composer card casts a coloured spill', /\[data-composer-card\]\s*\{[^}]*box-shadow:[^}]*var\(--orbital-band-/u.test(css))
+check('composer spill also scales with the glow preset', /\[data-composer-card\]\s*\{[^}]*box-shadow:[^}]*calc\([^)]*var\(--orbital-glow\)/u.test(css))
+check('composer ring drift stops under reduced motion', /prefers-reduced-motion[\s\S]*\[data-composer-card\]::before\s*\{[^}]*animation:\s*none/u.test(css))
+
+// The focus state swaps in a brand ring shadow. Both states must keep the same
+// number of layers AND the same inset pattern (a padded transparent layer would
+// otherwise land opposite an inset one), or Chrome treats the pair as
+// non-interpolable and the focus light snaps on instead of fading in.
+check('composer base keeps the ring slot as a transparent layer', /\[data-composer-card\]\s*\{[^}]*box-shadow:[^}]*0 0 0 0 transparent/u.test(css))
+check('composer focus light is transitioned', /\[data-composer-card\]\s*\{[^}]*transition:[^}]*box-shadow\s+\d+ms/u.test(css))
+check('composer focus light uses the theme easings', /\[data-composer-card\]\s*\{[^}]*transition:[^}]*box-shadow\s+\d+ms\s+var\(--orbital-ease/u.test(css))
+check('composer card transition is dropped for reduced motion', /prefers-reduced-motion[\s\S]*\[data-composer-card\]\s*\{[^}]*transition:\s*none/u.test(css))
+
+// The placeholder and inline hint take --dsw-alias-label-caption; on the dark
+// card that token reads as almost invisible, so the card lifts it locally.
+check('composer lifts the caption colour for its placeholder', /\[data-composer-card\]\s*\{[^}]*--dsw-alias-label-caption:\s*color-mix/u.test(css))
+
 console.log(failures.length === 0 ? '\nALL PASS' : `\n${failures.length} FAILURE(S): ${failures.join(', ')}`)
 process.exit(failures.length === 0 ? 0 : 1)

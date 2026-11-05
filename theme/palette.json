@@ -147,7 +147,7 @@
     "--orbital-accent": "#4D6BFE",
     "--orbital-accent-soft": "#8AA2FF",
     "--orbital-glow-strength": "1",
-    "--orbital-band-width": "1.5px",
+    "--orbital-band-width": "2px",
     "--orbital-band-violet": "#8E7BFF",
     "--orbital-band-azure": "#4D6BFE",
     "--orbital-band-cyan": "#45D6FF",
