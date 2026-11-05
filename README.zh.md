@@ -11,13 +11,9 @@
 
 不改 DSH 本体，卸载即还原。
 
-![上一版（青色）深色预览，配色以 DeepSeek Blue 为准](docs/preview-dark.png)
+![欢迎页：DeepSeek Blue 界面 + 输入区之后的循环人物壁纸](docs/preview-welcome.png)
 
-![上一版（青色）浅色预览，配色以 DeepSeek Blue 为准](docs/preview-light.png)
-
-![启动进场影片](docs/preview-intro.png)
-
-![欢迎页的循环壁纸（清晰档）](docs/preview-welcome.png)
+![启动时先播的 4K 进场影片](docs/preview-intro.png)
 
 
 ## 它做了什么
