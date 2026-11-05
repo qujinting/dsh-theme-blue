@@ -1,5 +1,7 @@
 # dsh-theme-orbital · 深潜主题
 
+<a href="https://linux.do/"><img src="https://ld.xh.do/ld-badge.svg" alt="认可 LINUX DO 社区" width="180"></a>
+
 给 **DSH**（DeepSeek Harness）用的 **DeepSeek Blue（深潜）主题插件**：把 Web GUI 换成
 单一品牌蓝、按明度分层的深空界面 —— `BASE #050A14` / `PANEL #070F1C` / `SURFACE #0B1626` /
 `GLASS #1B1E25`，品牌色 `#4D6BFE`、光束 `#8AA2FF`、正文 `#E6EDFB`、弱文字 `#55688A`，
@@ -233,3 +235,7 @@ __dshTheme.enable()
 
 插件代码 MIT（见 [LICENSE](LICENSE)）。不含第三方字体、图片或模型；遮罩里的图形是
 内联 SVG，颜色取主题自己的品牌蓝 / 光束蓝。
+
+## 友情链接
+
+本项目已链接认可 [LINUX DO 社区](https://linux.do/)（新的理想型社区 · 开源技术社区），欢迎佬友们来交流。

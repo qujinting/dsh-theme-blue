@@ -1,5 +1,7 @@
 # dsh-theme-orbital · DeepSeek Blue
 
+<a href="https://linux.do/"><img src="https://ld.xh.do/ld-badge.svg" alt="认可 LINUX DO 社区" width="180"></a>
+
 A **DeepSeek Blue theme plug-in for DSH** (DeepSeek Harness). It turns the Web GUI
 into a single-hue, lightness-layered deep-sea interface — `BASE #050A14` /
 `PANEL #070F1C` / `SURFACE #0B1626` / `GLASS #1B1E25`, brand `#4D6BFE`, beam
@@ -257,3 +259,7 @@ classic UI restores the native light interface.
 
 MIT for the plug-in code (see [LICENSE](LICENSE)). No third-party fonts, images or
 models are bundled; the veil artwork is inline SVG coloured from the brand / beam accents.
+
+## Community
+
+This open-source project is linked to and recognises the [LINUX DO community](https://linux.do/) — 新的理想型社区, "where possible begins".
