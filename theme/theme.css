@@ -47,7 +47,9 @@
 		180deg,
 		color-mix(in srgb, var(--orbital-accent) calc(7% * var(--orbital-glow)), transparent),
 		transparent 34%,
-		color-mix(in srgb, var(--dsw-alias-bg-base) 60%, transparent)
+		/* 底部只压一档。原来是 60%，那一档直接叠在「工作区」列表最后几条上，
+		   会话名整片沉进底色里，读起来像被禁用——侧栏下半部分的文字发暗就是它。 */
+		color-mix(in srgb, var(--dsw-alias-bg-base) 22%, transparent)
 	);
 }
 
@@ -73,12 +75,20 @@
 	mask-image: linear-gradient(180deg, #000 0%, #000 62%, transparent 100%);
 }
 
+/* 这一层铺在内容之上，只能做「顶部一点点沉降」，不能做暗角。
+   原来是 130% × 88% 从顶部中心铺开的径向暗角：渐变带在 70%→100% 之间走到最暗，
+   88% 之后整段平铺 45% 的深色。于是整页从上往下越来越暗，页面最底边（输入区、
+   token 统计）和左边缘（工作区列表底部的会话名）最黑——文字看着发灰、灯带看着
+   发闷，全是这层 45% 的深色半透明盖出来的。这不是亮度不够，是上面盖了一层膜，
+   所以调灯带的数值永远看不出变化。
+   现在只保留最顶部 18% 的一条极轻沉降，底部和左右两侧完全放行；最外圈是
+   transparent，不会再有一块平铺的暗色。 */
 html [data-shell-overlay] {
 	--orbital-vignette: var(--dsw-alias-bg-base);
-	background-image: radial-gradient(
-		130% 88% at 50% 0%,
-		transparent 70%,
-		color-mix(in srgb, var(--orbital-vignette) 45%, transparent) 100%
+	background-image: linear-gradient(
+		180deg,
+		color-mix(in srgb, var(--orbital-vignette) 30%, transparent) 0%,
+		transparent 18%
 	);
 	background-repeat: no-repeat;
 }
@@ -137,7 +147,9 @@ html #root button[class*='_newSession']:hover {
 
 /* ------------------------------------------------------------ §4 输入区 */
 html [data-composer-seat] {
-	padding-bottom: 14px;
+	/* 14 → 18：多出的 4px 是给灯带那圈 26px 色晕的退让，让光和下面的统计行各自
+	   有落点，灯带也不会看起来贴在下沿上。 */
+	padding-bottom: 18px;
 }
 
 /* 输入区彩色灯带：卡片外沿一圈缓慢流动的彩色灯带，灯带的光再向外溢成彩色投影。
@@ -147,7 +159,18 @@ html [data-composer-seat] {
      · 卡片自己的 box-shadow 负责「投影」——壁纸上的彩色溢光，外加一条内侧回光，
        让灯带在卡片内部靠边处也有落点（参考稿里边框内侧是亮的）。
    颜色一律取自 palette.metrics 的 --orbital-band-*；强度全部乘 --orbital-glow，
-   于是 glow=off 时灯带 / 投影 / 回光一起消失，退回纯深色卡片。 */
+   于是 glow=off 时灯带 / 投影 / 回光一起消失，退回纯深色卡片。
+
+   这里的「光预算」怎么花，由两个约束决定：
+     1. 卡片正下方 18px 就是 token 统计行（[data-session-stats-usage]）。所以投影
+        一律不带大的正 Y 偏移、模糊半径封顶 ~56px：光只贴着卡片边界散开，不再向下
+        糊成一片雾把统计压掉（之前那两层 0 24px/0 56px 的紫蓝投影下探到 180px+）。
+     2. 灯带不靠堆辉光变亮，靠「峰谷差」变亮：线保持 1.5px，三层 drop-shadow
+        （1px 白芯 / 5px 青霓虹 / 13px 蓝晕）只负责定住形状，真正的亮度交给
+        conic 里两处 8° 的过白亮头，在 45% 的底色上巡游。近距辉光叠多了，1.5px
+        的线会被撑成 5~6px 的白边——那是粗，不是亮。
+     3. 统计行本身还有一层保险，见 §5 的 [data-session-stats-usage]：抬 z-index
+        把它压到所有溢光前面。光再小，只要叠在字上就是一层灰。 */
 @property --orbital-band-angle {
 	syntax: '<angle>';
 	inherits: false;
@@ -170,18 +193,28 @@ html [data-composer-card] {
 	--dsw-alias-label-caption: color-mix(in srgb, var(--dsw-alias-label-secondary) 76%, var(--dsw-alias-label-primary));
 
 	box-shadow:
-		var(--dsw-shadow-lv2),
+		/* 落地影：只留最轻的两档，把「浮在壁纸上」交代清楚，不变成一团大雾。 */
+		var(--dsw-shadow-lv1),
+		var(--dsw-shadow-lv1-blur),
 
 		/* 占位层：聚焦时这一格换成品牌色描边环。两态阴影列表必须层数、内外一致
 		   （含这一层和末尾两层的 inset），否则 Chrome 判定不可插值，过渡会直接跳变。 */
 		0 0 0 0 transparent,
-		0 0 96px -12px color-mix(in srgb, var(--orbital-band-azure) calc(45% * var(--orbital-glow)), transparent),
-		-30px 0 82px -20px color-mix(in srgb, var(--orbital-band-cyan) calc(45% * var(--orbital-glow)), transparent),
-		30px 0 82px -20px color-mix(in srgb, var(--orbital-band-violet) calc(45% * var(--orbital-glow)), transparent),
-		0 24px 92px -18px color-mix(in srgb, var(--orbital-band-violet) calc(72% * var(--orbital-glow)), transparent),
-		0 56px 156px -30px color-mix(in srgb, var(--orbital-band-azure) calc(85% * var(--orbital-glow)), transparent),
-		inset 0 1px 0 color-mix(in srgb, var(--orbital-band-pale) calc(18% * var(--orbital-glow)), transparent),
-		inset 0 0 60px -24px color-mix(in srgb, var(--orbital-band-cyan) calc(55% * var(--orbital-glow)), transparent);
+
+		/* 贴边光晕：零 Y 偏移的短半径，光沿卡片四边散开约一个卡片圆角的距离就收住。 */
+		0 0 44px -14px color-mix(in srgb, var(--orbital-band-azure) calc(40% * var(--orbital-glow)), transparent),
+		-20px 0 40px -18px color-mix(in srgb, var(--orbital-band-cyan) calc(34% * var(--orbital-glow)), transparent),
+		20px 0 40px -18px color-mix(in srgb, var(--orbital-band-violet) calc(34% * var(--orbital-glow)), transparent),
+
+		/* 上方略强、下方极短：光往上走（那边是空的会话区），向下只够交代边界，
+		   绝不落到统计行上。 */
+		0 -16px 48px -22px color-mix(in srgb, var(--orbital-band-cyan) calc(42% * var(--orbital-glow)), transparent),
+		0 10px 24px -18px color-mix(in srgb, var(--orbital-band-azure) calc(30% * var(--orbital-glow)), transparent),
+
+		/* 内回光：给边缝补一点点亮就够。这两层是「线变粗」的第二个来源——内环一重，
+		   视觉上就和外圈那道光并成一条 3px 的白边，所以压到几乎只剩一层薄膜。 */
+		inset 0 0 0 1px color-mix(in srgb, var(--orbital-band-pale) calc(14% * var(--orbital-glow)), transparent),
+		inset 0 0 34px -18px color-mix(in srgb, var(--orbital-band-cyan) calc(38% * var(--orbital-glow)), transparent);
 
 	/* 聚焦时那层光要比入场慢一点收放，否则像开关一样硬切。
 	   缓动走本主题自己的 --orbital-ease*：DSH 的 --ds-ease-* 是运行时令牌，
@@ -203,21 +236,49 @@ html [data-composer-card] {
 		inset: calc((var(--orbital-band-width) + 1px) * -1);
 		padding: var(--orbital-band-width);
 		border-radius: calc(var(--dsw-radius-panel) + 1px + var(--orbital-band-width));
+		/* 「一条光在跑」得先有一条暗轨道：底色压到 22~28%，在深底上只剩一圈很淡的
+		   蓝线（够看出卡片轮廓，但绝不抢注意力），然后两处 4° 的白亮头挂一条短拖尾。
+		   之前谷底留在 45%，整圈都是亮的，亮头根本没有存在感——三个相位的截图几乎
+		   一模一样，等于没动。对比必须压在峰谷差上，不能压在整体亮度上。
+		   宽度也别动：2px 以上就从「光」退化成「描边」，也会离输入区更远。 */
 		background: conic-gradient(
 			from var(--orbital-band-angle, 0deg) at 50% 280%,
-			var(--orbital-band-pale),
-			var(--orbital-band-cyan) 40deg,
-			var(--orbital-band-azure) 92deg,
-			var(--orbital-band-violet) 146deg,
-			var(--orbital-band-violet) 214deg,
-			var(--orbital-band-azure) 268deg,
-			var(--orbital-band-cyan) 320deg,
-			var(--orbital-band-pale)
+			color-mix(in srgb, var(--orbital-band-azure) 24%, transparent) 0deg,
+			color-mix(in srgb, var(--orbital-band-azure) 26%, transparent) 20deg,
+			color-mix(in srgb, var(--orbital-band-cyan) 46%, transparent) 31deg,
+			var(--orbital-band-pale) 36deg,
+			var(--orbital-band-pale) 40deg,
+			color-mix(in srgb, var(--orbital-band-cyan) 74%, transparent) 44deg,
+			color-mix(in srgb, var(--orbital-band-azure) 48%, transparent) 54deg,
+			color-mix(in srgb, var(--orbital-band-azure) 28%, transparent) 72deg,
+			color-mix(in srgb, var(--orbital-band-violet) 22%, transparent) 112deg,
+			color-mix(in srgb, var(--orbital-band-azure) 24%, transparent) 160deg,
+			color-mix(in srgb, var(--orbital-band-violet) 20%, transparent) 208deg,
+			color-mix(in srgb, var(--orbital-band-azure) 24%, transparent) 246deg,
+			color-mix(in srgb, var(--orbital-band-cyan) 46%, transparent) 259deg,
+			var(--orbital-band-pale) 264deg,
+			var(--orbital-band-pale) 268deg,
+			color-mix(in srgb, var(--orbital-band-cyan) 74%, transparent) 272deg,
+			color-mix(in srgb, var(--orbital-band-azure) 48%, transparent) 282deg,
+			color-mix(in srgb, var(--orbital-band-azure) 28%, transparent) 300deg,
+			color-mix(in srgb, var(--orbital-band-violet) 22%, transparent) 340deg,
+			color-mix(in srgb, var(--orbital-band-azure) 24%, transparent) 360deg
 		);
-		opacity: calc(var(--orbital-glow) * 0.85);
+		opacity: var(--orbital-glow);
+
+		/* 加算混合：线压在不透明深色卡片上时按通道相加，边缘会自己「过曝」出一点
+		   白芯，比单纯提高不透明度更像真正的光。不支持 plus-lighter 的运行时
+		   会忽略这条声明，退回 normal 叠色，观感只是稍平，不会坏。 */
+		mix-blend-mode: plus-lighter;
+
+		/* 三层就够。之前叠到六层是为了「加量」，但 drop-shadow 是串联的，近距那几层
+		   会把 1.5px 的线撑成 5~6px 的白边——看着是粗，不是亮。现在近距只留一层很淡
+		   的白芯定住线形，中距一层青霓虹，远距一层蓝晕，线才细得下来。
+		   13px 是唯一明显外溢的部分，再大就会压到下面的统计行。 */
 		filter:
-			drop-shadow(0 0 8px color-mix(in srgb, var(--orbital-band-cyan) 90%, transparent))
-			drop-shadow(0 0 26px color-mix(in srgb, var(--orbital-band-azure) 80%, transparent));
+			drop-shadow(0 0 1px color-mix(in srgb, var(--orbital-band-pale) 55%, transparent))
+			drop-shadow(0 0 5px color-mix(in srgb, var(--orbital-band-cyan) 70%, transparent))
+			drop-shadow(0 0 13px color-mix(in srgb, var(--orbital-band-azure) 45%, transparent));
 		-webkit-mask:
 			linear-gradient(#000 0 0) content-box,
 			linear-gradient(#000 0 0);
@@ -227,7 +288,9 @@ html [data-composer-card] {
 			linear-gradient(#000 0 0);
 		mask-composite: exclude;
 		pointer-events: none;
-		animation: orbital-band-drift 24s linear infinite;
+		/* 8s 一圈、两道光头 → 大约每 4 秒有一道光从边上过去。24s 太慢，一整圈下来
+		   人根本意识不到它在动；再快就成了跑马灯，抢输入区里正在打的字。 */
+		animation: orbital-band-drift 8s linear infinite;
 
 		/* 灯带自身也要跟着聚焦一起变亮，而且这段过渡和卡片的阴影同一条曲线。 */
 		transition:
@@ -237,24 +300,33 @@ html [data-composer-card] {
 }
 
 html [data-composer-card]:focus-within::before {
-	opacity: min(1, calc(var(--orbital-glow) * 1.25));
+	/* 不透明度已经到顶，聚焦的增量放在「光晕推远一档 + 亮芯更实」上：
+	   线本身更白、霓虹更紧、色晕更远，于是聚焦读起来是「灯更亮」，不是「灯变大」。 */
+	/* 层数、函数名必须和默认态完全一致，否则 filter 不可插值，聚焦会硬跳。 */
 	filter:
-		drop-shadow(0 0 12px color-mix(in srgb, var(--orbital-band-cyan) 100%, transparent))
-		drop-shadow(0 0 40px color-mix(in srgb, var(--orbital-band-azure) 95%, transparent));
+		drop-shadow(0 0 1px color-mix(in srgb, var(--orbital-band-pale) 72%, transparent))
+		drop-shadow(0 0 6px color-mix(in srgb, var(--orbital-band-cyan) 82%, transparent))
+		drop-shadow(0 0 16px color-mix(in srgb, var(--orbital-band-azure) 48%, transparent));
 }
 
+/* 聚焦只比默认「亮一档」，不是亮两档。
+   输入框几乎一直是聚焦的——光晕要做的是给一点反馈，不是一直在往外烧。
+   所以半径只比默认多 6~8px、透明度多 6~8 个点，描边环也从 2px/55% 收到
+   1.5px/42%，border 从 90% 降到 68%：聚焦读起来是「边界变清晰了」，
+   而不是「整块开始发光」。 */
 html [data-composer-card]:focus-within {
-	border-color: color-mix(in srgb, var(--orbital-accent) 90%, var(--dsw-alias-border-l3));
+	border-color: color-mix(in srgb, var(--orbital-accent) 68%, var(--dsw-alias-border-l3));
 	box-shadow:
-		var(--dsw-shadow-lv2),
-		0 0 0 2px color-mix(in srgb, var(--orbital-accent) calc(55% * var(--orbital-glow)), transparent),
-		0 0 112px -10px color-mix(in srgb, var(--orbital-band-azure) calc(62% * var(--orbital-glow)), transparent),
-		-34px 0 96px -18px color-mix(in srgb, var(--orbital-band-cyan) calc(62% * var(--orbital-glow)), transparent),
-		34px 0 96px -18px color-mix(in srgb, var(--orbital-band-violet) calc(62% * var(--orbital-glow)), transparent),
-		0 26px 104px -16px color-mix(in srgb, var(--orbital-band-violet) calc(90% * var(--orbital-glow)), transparent),
-		0 62px 176px -30px color-mix(in srgb, var(--orbital-band-azure) calc(100% * var(--orbital-glow)), transparent),
-		inset 0 1px 0 color-mix(in srgb, var(--orbital-band-pale) calc(26% * var(--orbital-glow)), transparent),
-		inset 0 0 68px -22px color-mix(in srgb, var(--orbital-band-cyan) calc(70% * var(--orbital-glow)), transparent);
+		var(--dsw-shadow-lv1),
+		var(--dsw-shadow-lv1-blur),
+		0 0 0 1.5px color-mix(in srgb, var(--orbital-accent) calc(42% * var(--orbital-glow)), transparent),
+		0 0 50px -16px color-mix(in srgb, var(--orbital-band-azure) calc(40% * var(--orbital-glow)), transparent),
+		-20px 0 44px -20px color-mix(in srgb, var(--orbital-band-cyan) calc(36% * var(--orbital-glow)), transparent),
+		20px 0 44px -20px color-mix(in srgb, var(--orbital-band-violet) calc(36% * var(--orbital-glow)), transparent),
+		0 -18px 54px -22px color-mix(in srgb, var(--orbital-band-cyan) calc(46% * var(--orbital-glow)), transparent),
+		0 10px 26px -18px color-mix(in srgb, var(--orbital-band-azure) calc(32% * var(--orbital-glow)), transparent),
+		inset 0 0 0 1px color-mix(in srgb, var(--orbital-band-pale) calc(20% * var(--orbital-glow)), transparent),
+		inset 0 0 38px -18px color-mix(in srgb, var(--orbital-band-cyan) calc(42% * var(--orbital-glow)), transparent);
 }
 
 html [data-composer-chip],
@@ -330,9 +402,18 @@ html [data-code-block-banner] {
 	border-bottom: 1px solid color-mix(in srgb, var(--dsw-alias-border-l2) 80%, transparent);
 }
 
+/* token 统计紧贴输入区下沿。它发灰有两层原因，得分开治：
+   1. 层叠 —— 卡片是 z-index:auto 的定位元素，它的 box-shadow / 灯带光晕会按
+      DOM 顺序画在统计行之上。光一压，11px 的数字就「陷进去」了。这里 +2 把这
+      一行钉在输入区所有溢光前面；只把光调小治不了这个，光小也一样蒙。
+   2. 对比 —— 就算不被盖，11px 的 tertiary 灰字落在蓝紫雾上也不够。给一条同底色
+      的短描边，字的边界就立住了。 */
 html [data-session-stats-usage] {
 	font-variant-numeric: tabular-nums;
 	letter-spacing: 0.01em;
+	position: relative;
+	z-index: 2;
+	text-shadow: 0 1px 2px color-mix(in srgb, var(--dsw-alias-bg-base) 80%, transparent);
 }
 
 /* ------------------------------------------------------- §6 浮层与菜单 */
